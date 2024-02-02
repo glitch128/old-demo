@@ -9,6 +9,7 @@ import {
     StackItem,
 } from "@fluentui/react";
 import { BugReport } from "@yume-chan/android-bin";
+import { DecodeUtf8Stream } from "@yume-chan/stream-extra";
 import {
     action,
     autorun,
@@ -91,6 +92,17 @@ class BugReportState {
             this.bugReportZTotalSize = undefined;
         });
     }
+    async test() {
+        const process = await adb.subprocess.spawn("ls -l");
+await process.stdout.pipeThrough(new DecodeUtf8Stream()).pipeTo(
+  new WritableStream<string>({
+    write(chunk) {
+      console.log(chunk);
+    },
+  }),
+);
+    }
+    
 }
 
 const state = new BugReportState();
@@ -141,6 +153,14 @@ const BugReportPage: NextPage = () => {
                             onClick={state.generateBugReportZ}
                         />
                     </StackItem>
+
+                    <StackItem>
+                <PrimaryButton
+                    disabled={!state.bugReport}
+                    text="test"
+                    onClick={state.test}
+                />
+            </StackItem>
 
                     {state.bugReportZInProgress && (
                         <StackItem>
